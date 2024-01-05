@@ -1,17 +1,19 @@
-import requests
+import pika
 
-def publicar_mensagem(conteudo):
-    url = "http://localhost:8000/publicar-mensagem/"
-    payload = {"conteudo": conteudo}
-    headers = {"Content-Type": "application/json"}
+# Conectar ao servidor RabbitMQ
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
 
-    response = requests.post(url, json=payload, headers=headers)
+# Criar uma fila
+channel.queue_declare(queue='testefila')
 
-    if response.status_code == 200:
-        print("Mensagem publicada com sucesso!")
-    else:
-        print(f"Erro ao publicar mensagem. Status code: {response.status_code}")
+# Mensagem a ser enviada
+msg=input("Informe o texto da mensagem:")
 
-if __name__ == "__main__":
-    conteudo_mensagem = input("Digite o conteúdo da mensagem: ")
-    publicar_mensagem(conteudo_mensagem)
+# Publicar mensagem na fila
+channel.basic_publish(exchange='', routing_key='testefila', body=msg)
+
+print(" [x] Mensagem enviada para a fila")
+
+# Fechar a conexão
+connection.close()
